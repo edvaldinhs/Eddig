@@ -46,6 +46,7 @@ window.addEventListener('load', function () {
             this.image = document.getElementById('edd');
             this.ultimaTecla = 0;
             this.isCPressed = false;
+            this.isInteractingWithMato = false;
         }
         draw(context) {
             context.imageSmoothingEnabled = false;
@@ -65,6 +66,20 @@ window.addEventListener('load', function () {
         setarVel(velX, velY) {
             this.velX = velX;
             this.velY = velY;
+        }
+        runInteractionAnimation() {
+            this.velX = 0;
+            this.velY = 0;
+            this.frameY = 8;
+            this.frameCount++;
+            if (this.frameCount >= this.frameDelay) {
+                this.frameCount = 0;
+                if (this.frameX < this.maxFrame - 1) {
+                    this.frameX++;
+                } else {
+                    this.frameX = 0;
+                }
+            }
         }
         update() {
             if (this.isCPressed) {
@@ -787,9 +802,8 @@ window.addEventListener('load', function () {
         resetMatos() {
             for (let mato of this.matos) {
                 mato.reset();
+                this.interacted = false;
             }
-        
-            // Find the last interacted Mato and reset it
             const lastInteractedMato = this.matos.find(mato => mato.interacted);
             if (lastInteractedMato) {
                 lastInteractedMato.interacted = false;
@@ -798,6 +812,11 @@ window.addEventListener('load', function () {
             this.generatedAnimals = [];
         }
         detectarInteracaoEddy() {
+            
+            if (!this.excludedMatos) {
+                this.excludedMatos = [];
+            }
+
             const animalClasses = {
                 1: Galinha,
                 2: Gato,
@@ -809,21 +828,21 @@ window.addEventListener('load', function () {
         
             for (let mato of this.matos) {
                 if (!mato.interacted && Math.abs(this.eddy.x - mato.x) <= this.eddy.width &&
-                    Math.abs(this.eddy.y - mato.y) <= this.eddy.height) {
-                    
+                    Math.abs(this.eddy.y - mato.y) <= this.eddy.height && !this.waitingToDelete) {
+        
                     console.log('Eddy está perto de um mato!');
                     
                     if (this.eddy.isCPressed) {
                         console.log(mato.numeroAleatorio);
                         const AnimalClass = animalClasses[mato.numeroAleatorio];
-                        
+        
                         if (AnimalClass) {
                             console.log(`Spawning ${AnimalClass.name}.`);
                             const animal = new AnimalClass(this, mato.x, mato.y);
                             this.animais.push(animal);
-                            // Log the generated animal
                             console.log(`Generated ${AnimalClass.name} at (${mato.x}, ${mato.y}).`);
-                            this.generatedAnimals.push({ animal, mato }); // Store the generated animal and the associated Mato
+                            this.generatedAnimals.push({ animal, mato });
+                            mato.interacted = true;
                         } else {
                             console.log('Invalid animal number.');
                         }
@@ -833,23 +852,29 @@ window.addEventListener('load', function () {
                         }
                         if (this.detections >= 1) {
                             this.detections = 0;
-                            let matoToReset;
-                            for (let i = 0; i < 2; i++) {
-                                const { animal, mato: associatedMato } = this.generatedAnimals.pop();
-                                const index = this.animais.indexOf(animal);
-                                if (index !== -1) {
-                                    this.animais.splice(index, 1);
-                                    console.log(`Deleted ${animal.constructor.name} at (${animal.x}, ${animal.y}).`);
-                                    matoToReset = associatedMato;
-                                }
-                            }
-                            if (matoToReset) {
-                                matoToReset.interacted = false;
-                            }
+                            this.waitingToDelete = true;
         
-                            // Reset the interaction status for both Matos involved
-                            this.selectedMato.interacted = false;
-                            mato.interacted = false;
+                            let generatedAnimalCount = this.generatedAnimals.length;
+        
+                            setTimeout(() => {
+                                for (let i = 0; i < 2 && generatedAnimalCount > 0; i++) {
+                                    const { animal, mato: associatedMato } = this.generatedAnimals.pop();
+                                    const index = this.animais.indexOf(animal);
+                                    if (index !== -1) {
+                                        this.animais.splice(index, 1);
+                                        console.log(`Deleted ${animal.constructor.name} at (${animal.x}, ${animal.y}).`);
+                                        animal.x = associatedMato.x;
+                                        animal.y = associatedMato.y;
+                                    }
+                                    generatedAnimalCount--;
+                                }
+                                this.waitingToDelete = false;
+                                this.matos.forEach(mato => {
+                                    if (!this.excludedMatos.includes(mato)) {
+                                        mato.interacted = false;
+                                    }
+                                });
+                            }, 2000);
                         }
         
                         if (!this.selectedMato) {
@@ -858,18 +883,17 @@ window.addEventListener('load', function () {
                             this.lastInteractedMatoNum = mato.numeroAleatorio;
                             if (this.selectedMato.numeroAleatorio === this.lastInteractedMatoNum) {
                                 this.pontos++;
-                                this.pontosElement.innerText = this.pontos;
+                                this.pontosElement.innerText = "Pontos: "+this.pontos;
+                                this.excludedMatos.push(this.selectedMato);
+                                this.excludedMatos.push(mato);
                             }
                             this.selectedMato = null;
                         }
-                        mato.interacted = true;
-                        mato.isCPressed = false;
+                        this.eddy.isCPressed = false;
                     }
                 }
             }
         }
-        
-        
         renderizar(context) {
             this.gameObjects = [...this.matos, ...this.animais, this.eddy];
             this.gameObjects.sort((a, b) => {
