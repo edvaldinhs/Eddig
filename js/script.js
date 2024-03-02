@@ -10,7 +10,12 @@ window.addEventListener('load', function () {
             this.keysPressed = new Set();
             this.keyReleased = new Set();
             console.log("manipulador criado!");
+            
+            // Lendo o teclado
             window.addEventListener('keydown', e => {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
                 this.keysPressed.add(e.key);
                 if (e.key === 'c' && !this.game.eddy.isCPressed) {
                     this.game.eddy.isCPressed = true;
@@ -18,17 +23,61 @@ window.addEventListener('load', function () {
                 }
                 this.game.atualizarTeclas(this.keysPressed);
             });
+    
             window.addEventListener('keyup', e => {
                 this.keysPressed.delete(e.key);
                 this.keyReleased.add(e.key); // Add to released keys
                 this.game.atualizarTeclas(this.keysPressed);
             });
+            
+            // Leitores dos botões da tela e touch (clica)
+            document.getElementById('upArrow').addEventListener('mousedown', () => this.simulateKeyPress('ArrowUp'));
+            document.getElementById('downArrow').addEventListener('mousedown', () => this.simulateKeyPress('ArrowDown'));
+            document.getElementById('leftArrow').addEventListener('mousedown', () => this.simulateKeyPress('ArrowLeft'));
+            document.getElementById('rightArrow').addEventListener('mousedown', () => this.simulateKeyPress('ArrowRight'));
+            document.getElementById('keyC').addEventListener('mousedown', () => this.simulateKeyPress('c'));
+            
+            document.getElementById('upArrow').addEventListener('touchstart', () => this.simulateKeyPress('ArrowUp'));
+            document.getElementById('downArrow').addEventListener('touchstart', () => this.simulateKeyPress('ArrowDown'));
+            document.getElementById('leftArrow').addEventListener('touchstart', () => this.simulateKeyPress('ArrowLeft'));
+            document.getElementById('rightArrow').addEventListener('touchstart', () => this.simulateKeyPress('ArrowRight'));
+            document.getElementById('keyC').addEventListener('touchstart', () => this.simulateKeyPress('c'));
+    
+            // Mais Leitores dos botões da tela e touch (solta)
+            document.getElementById('upArrow').addEventListener('mouseup', () => this.simulateKeyRelease('ArrowUp'));
+            document.getElementById('downArrow').addEventListener('mouseup', () => this.simulateKeyRelease('ArrowDown'));
+            document.getElementById('leftArrow').addEventListener('mouseup', () => this.simulateKeyRelease('ArrowLeft'));
+            document.getElementById('rightArrow').addEventListener('mouseup', () => this.simulateKeyRelease('ArrowRight'));
+            document.getElementById('keyC').addEventListener('mouseup', () => this.simulateKeyRelease('c'));
+    
+            document.getElementById('upArrow').addEventListener('touchend', () => this.simulateKeyRelease('ArrowUp'));
+            document.getElementById('downArrow').addEventListener('touchend', () => this.simulateKeyRelease('ArrowDown'));
+            document.getElementById('leftArrow').addEventListener('touchend', () => this.simulateKeyRelease('ArrowLeft'));
+            document.getElementById('rightArrow').addEventListener('touchend', () => this.simulateKeyRelease('ArrowRight'));
+            document.getElementById('keyC').addEventListener('touchend', () => this.simulateKeyRelease('c'));
+        }
+    
+        simulateKeyPress(key) {
+            const event = new KeyboardEvent('keydown', {
+                key: key,
+            });
+            window.dispatchEvent(event);
+        }
+    
+        simulateKeyRelease(key) {
+            const event = new KeyboardEvent('keyup', {
+                key: key,
+            });
+            window.dispatchEvent(event);
         }
     }
 
+    //Classe sobre o personagem
     class Eddy {
         constructor(game) {
             this.game = game;
+            //Sprite management (vulgo bonequinho e animações)
+            //Cuidado ao mexer aqui!!
             this.spriteWidth = 24;
             this.spriteHeight = 24;
             this.width = 95;
@@ -38,16 +87,22 @@ window.addEventListener('load', function () {
             this.maxFrame = 9;
             this.frameDelay = 3.2;
             this.frameCount = 0;
+            //Posição inicial
             this.x = 200;
             this.y = 200;
+            
             this.velX = 0;
             this.velY = 0;
             this.velMax = 10;
+
             this.image = document.getElementById('edd');
+            
             this.ultimaTecla = 0;
             this.isCPressed = false;
             this.isInteractingWithMato = false;
         }
+
+        //"Desenha" o personagem no canvas
         draw(context) {
             context.imageSmoothingEnabled = false;
             context.drawImage(
@@ -67,23 +122,11 @@ window.addEventListener('load', function () {
             this.velX = velX;
             this.velY = velY;
         }
-        runInteractionAnimation() {
-            this.velX = 0;
-            this.velY = 0;
-            this.frameY = 8;
-            this.frameCount++;
-            if (this.frameCount >= this.frameDelay) {
-                this.frameCount = 0;
-                if (this.frameX < this.maxFrame - 1) {
-                    this.frameX++;
-                } else {
-                    this.frameX = 0;
-                }
-            }
-        }
+
+        //Update no estado do personagem
         update() {
             if (this.isCPressed) {
-                // Para o movimento do boneco e gira ele
+                // Para o movimento do boneco e inicia a animaçõa de girar.
                 this.velX = 0;
                 this.velY = 0;
                 this.frameY = 8;
@@ -155,6 +198,7 @@ window.addEventListener('load', function () {
             }
         }
     }
+    //Animais que saem do Mato
     class Animal {
         constructor(game, x, y, imageId) {
             this.game = game;
@@ -197,6 +241,7 @@ window.addEventListener('load', function () {
             );
         }
         update() {
+            //Quando interagir com o mato na primeira vez, faz ele pular
             if (this.jumping) {
                 this.y -= this.jumpSpeed;
                 this.jumpSpeed -= this.gravity;
@@ -205,6 +250,7 @@ window.addEventListener('load', function () {
                     this.jumping = false;
                 }
             } else {
+                //Quando acabar o pulo começa a andar randomicamente e parar
                 if (!this.stopped) {
                     if (this.moveCount < this.maxMoveCount) {
                         const nextX = this.x + this.directionX * this.speed;
@@ -260,6 +306,7 @@ window.addEventListener('load', function () {
                         this.frameX = 0;
                     }
                 }
+                //Percorrendo a Array de sprites (Sprite sheet)
                 if (this.directionX < 0) {
                     this.frameY = 3; // Left
                 } else if (this.directionX > 0) {
@@ -271,6 +318,7 @@ window.addEventListener('load', function () {
                 }
             }
         }
+        //Animal indo em direções diferentes
         setDirecaoAleatoria() {
             this.stopped = false;
             this.directionX = Math.random() * 2 - 1;
@@ -282,6 +330,7 @@ window.addEventListener('load', function () {
             this.maxMoveCount = Math.floor(Math.random() * 100) + 50;
         }
     }
+    //Aprendi em PEOO :)
     class Galinha extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'galinha');
@@ -363,7 +412,7 @@ window.addEventListener('load', function () {
             }
         }
     }
-
+    //Aprendi em PEOO :)
     class Gato extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'gato');
@@ -450,6 +499,7 @@ window.addEventListener('load', function () {
             }
         }
     }
+    //Aprendi em PEOO :)
     class Morcego extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'morcego');
@@ -535,7 +585,7 @@ window.addEventListener('load', function () {
             }
         }
     }
-
+    //Aprendi em PEOO :)
     class Vaca extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'vaca');
@@ -618,7 +668,7 @@ window.addEventListener('load', function () {
             }
         }
     }
-
+    //Aprendi em PEOO :)
     class Pato extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'pato');
@@ -698,7 +748,7 @@ window.addEventListener('load', function () {
             }
         }
     }
-
+    //Aprendi em PEOO :)
     class Fantasma extends Animal {
         constructor(game, x, y) {
             super(game, x, y, 'fantasma');
@@ -708,6 +758,8 @@ window.addEventListener('load', function () {
             this.spriteHeight = 24;
             this.frameY = 0;
         }
+        //O fantasma repete praticamente nada porque a 
+        //classe Animal já funciona perfeitamente pra ele
     }
 
     class Objeto {
@@ -726,6 +778,8 @@ window.addEventListener('load', function () {
         }
     }
 
+    //Aprendi em PEOO :)
+    //Mato que sai animais
     class Mato extends Objeto {
         constructor(game, row, col) {
             super(game);
@@ -741,11 +795,10 @@ window.addEventListener('load', function () {
             this.interacted = false;
             this.calculatePosition();
         }
-
         gerarNumeroAleatorio() {
             return Math.floor(Math.random() * 6) + 1;
         }
-
+        //Posiciona os Matos em uma grid
         calculatePosition(index) {
             const gridSize = 170;
             const spacingX = 50;
@@ -757,8 +810,7 @@ window.addEventListener('load', function () {
             this.x = col * (gridSize + spacingX) + marginX;
             this.y = row * gridSize + marginY;
         }
-
-
+        //Pega um número aleatório para formar um par com outro mato
         setnumeroAleatorio(pair) {
             if (pair) {
                 this.numeroAleatorio = pair.value;
@@ -766,19 +818,17 @@ window.addEventListener('load', function () {
                 this.numeroAleatorio = this.gerarNumeroAleatorio();
             }
         }
-
-
-
         reset() {
             this.interacted = false;
         }
     }
-
+    //"O Jogo"!
     class Jogo {
         constructor(width, height) {
             this.width = width;
             this.height = height;
             this.topMargin = 100;
+            this.tentativas = 0;
             this.pontos = 0;
             this.teclasPressionadas = new Set();
             this.input = new ManipularInput(this);
@@ -788,7 +838,7 @@ window.addEventListener('load', function () {
             this.gameObjects = [];
             this.animais = [];
             this.matoSelecionado = null;
-            this.pontosElement = document.getElementById('pontos');
+            this.tentativasElement = document.getElementById('tentativas');
             this.detections = 0;
             this.generatedAnimals = [];
             this.lastInteractedMatoNum = undefined;
@@ -808,15 +858,16 @@ window.addEventListener('load', function () {
             if (lastInteractedMato) {
                 lastInteractedMato.interacted = false;
             }
-        
+
             this.generatedAnimals = [];
         }
+        //Verifica Se o Personagem clicou num mato
         detectarInteracaoEddy() {
-            
             if (!this.excludedMatos) {
                 this.excludedMatos = [];
             }
-
+            //O número do Mato spawna diferentes animais
+            //Com base no seu número (id)
             const animalClasses = {
                 1: Galinha,
                 2: Gato,
@@ -825,17 +876,18 @@ window.addEventListener('load', function () {
                 5: Fantasma,
                 6: Morcego
             };
-        
+            //For -> Percorre todos os matos
+            //If -> Verifica se um deles está próximo do personagem Eddy
             for (let mato of this.matos) {
                 if (!mato.interacted && Math.abs(this.eddy.x - mato.x) <= this.eddy.width &&
                     Math.abs(this.eddy.y - mato.y) <= this.eddy.height && !this.waitingToDelete) {
-        
                     console.log('Eddy está perto de um mato!');
-                    
+
                     if (this.eddy.isCPressed) {
                         console.log(mato.numeroAleatorio);
                         const AnimalClass = animalClasses[mato.numeroAleatorio];
-        
+
+                        //Spawna um animal do mato e deixa ele impossível de ser interagido
                         if (AnimalClass) {
                             console.log(`Spawning ${AnimalClass.name}.`);
                             const animal = new AnimalClass(this, mato.x, mato.y);
@@ -846,16 +898,18 @@ window.addEventListener('load', function () {
                         } else {
                             console.log('Invalid animal number.');
                         }
-        
+
                         if (this.selectedMato && this.selectedMato.numeroAleatorio !== mato.numeroAleatorio) {
                             this.detections++;
                         }
+                        //Verifica se é o primeiro ou segundo mato a ser interagido
                         if (this.detections >= 1) {
                             this.detections = 0;
                             this.waitingToDelete = true;
-        
+                            this.tentativas++;
+                            this.tentativasElement.innerText = "Tentativas: " + this.tentativas;
+
                             let generatedAnimalCount = this.generatedAnimals.length;
-        
                             setTimeout(() => {
                                 for (let i = 0; i < 2 && generatedAnimalCount > 0; i++) {
                                     const { animal, mato: associatedMato } = this.generatedAnimals.pop();
@@ -865,6 +919,7 @@ window.addEventListener('load', function () {
                                         console.log(`Deleted ${animal.constructor.name} at (${animal.x}, ${animal.y}).`);
                                         animal.x = associatedMato.x;
                                         animal.y = associatedMato.y;
+                                        //F pro animal :(
                                     }
                                     generatedAnimalCount--;
                                 }
@@ -876,16 +931,16 @@ window.addEventListener('load', function () {
                                 });
                             }, 2000);
                         }
-        
                         if (!this.selectedMato) {
                             this.selectedMato = mato;
                         } else {
                             this.lastInteractedMatoNum = mato.numeroAleatorio;
+                            //Verifica se os matos são pares (mesmo animal dentro)
                             if (this.selectedMato.numeroAleatorio === this.lastInteractedMatoNum) {
-                                this.pontos++;
-                                this.pontosElement.innerText = "Pontos: "+this.pontos;
                                 this.excludedMatos.push(this.selectedMato);
                                 this.excludedMatos.push(mato);
+                                this.tentativas++;
+                            this.tentativasElement.innerText = "Tentativas: " + this.tentativas;
                             }
                             this.selectedMato = null;
                         }
@@ -906,7 +961,6 @@ window.addEventListener('load', function () {
                 }
             });
         }
-        
         iniciar() {
             const values = [1, 2, 3, 4, 5, 6];
             const matosPerValue = 2;
