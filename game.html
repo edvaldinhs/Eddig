@@ -13,6 +13,23 @@
 </head>
 
 <body>
+  <div id="name-container">
+    <h1>Insira seu nome</h1>
+    <input type="text" id="user-name" placeholder="Enter something">
+    <button onclick="submitName()">Iniciar</button>
+  </div>
+
+  <div id="end-container">
+    <h1>Game Over</h1>
+    <br>
+    <h2>Resultado:</h2><br>
+
+      <p class="name">Nome: <span></span></p>
+      <p class="flips2">Flips: <span>00</span></p>
+
+    <button class="playAgain" onclick="navegarParaUrl('/game.html')">Jogar Novamente</button>
+    <button class="backToMenu" onclick="navegarParaUrl('/index.html')">Voltar ao Menu</button>
+  </div>
   <section id="memory-game">
     <div class="wrapper">
       <h2 class="flips">Flips: <span>00</span></h2>

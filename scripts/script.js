@@ -1,7 +1,46 @@
+let isBlocking = true;
+const blockedKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+
+const endResult = document.getElementById("end-container");
+endResult.style.display = 'none';
+
+function unBlockKeys() {
+  isBlocking = false;
+}
+
+function submitName() {
+  const name = document.getElementById('user-name');
+  const value = name.value;
+
+  if (value.trim() !== "") {
+    console.log(`<p>Stored Data: ${value}</p>`)
+    document.getElementById('name-container').style.display = 'none';
+    document.querySelector(".name span").textContent = value.toString();
+  }
+  unBlockKeys();
+}
+
+function navegarParaUrl(url) {
+  window.location.href = url;
+}
+
+
+// ---------------------||------------------------
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.width = 1280 * 1.3;
 canvas.height = 720 * 1.3;
+
+document.addEventListener('selectstart', (e) => {
+  e.preventDefault();
+});
+document.addEventListener('dragstart', (e) => {
+  e.preventDefault();
+});
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+});
 
 class InputListener {
   constructor(game) {
@@ -10,15 +49,19 @@ class InputListener {
     this.keyReleased = new Set();
 
     window.addEventListener("keydown", (e) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        e.preventDefault();
+      if (!isBlocking) {
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+          e.preventDefault();
+        }
+        this.keysPressed.add(e.key);
+        if (e.key === "c" && !this.game.player.isCPressed) {
+          this.game.player.isCPressed = true;
+          this.game.player.frameX = 0;
+        }
+        this.game.updateKeys(this.keysPressed);
+      }else{
+        console.log("Blocked");
       }
-      this.keysPressed.add(e.key);
-      if (e.key === "c" && !this.game.player.isCPressed) {
-        this.game.player.isCPressed = true;
-        this.game.player.frameX = 0;
-      }
-      this.game.updateKeys(this.keysPressed);
     });
 
     window.addEventListener("keyup", (e) => {
@@ -951,16 +994,27 @@ class Game {
     this.topMargin = 200;
     this.flips = 0;
     this.flipsWrapper = document.querySelector(".flips span");
+    this.flipsEndGame = document.querySelector(".flips2 span");
     this.pressedKeys = new Set();
     this.input = new InputListener(this);
     this.player = new Player(this);
-    this.grassQuantity = 12;
     this.grass = [];
     this.gameObjects = [];
     this.animals = [];
     this.detections = 0;
     this.generatedAnimals = [];
     this.lastInteractedGrassID = undefined;
+    this.grassQuantityToEnd = -1;
+  }
+
+  finishGame(){
+    endResult.style.display = 'flex';
+  }
+
+  verifyEndGame(){
+    if(this.grassQuantityToEnd >= this.grass.length){
+      this.finishGame();
+    }
   }
 
   updateKeys(key) {
@@ -1007,6 +1061,9 @@ class Game {
           this.flipsWrapper.textContent = this.flips
             .toString()
             .padStart(2, "0");
+            this.flipsEndGame.textContent = this.flips
+            .toString()
+            .padStart(2, "0");
 
           if (AnimalClass) {
             const animal = new AnimalClass(this, grass.x, grass.y);
@@ -1014,6 +1071,7 @@ class Game {
 
             this.generatedAnimals.push({ animal, grass });
             grass.interacted = true;
+            this.grassQuantityToEnd++;
           }
 
           if (
@@ -1040,6 +1098,7 @@ class Game {
                   animal.y = associatedGrass.y;
                 }
                 generatedAnimalCount--;
+                this.grassQuantityToEnd--;
               }
               this.waitingToDelete = false;
               this.grass.forEach((grass) => {
@@ -1099,6 +1158,7 @@ class Game {
       grass.calculatePosition(index);
       this.grass.push(grass);
     });
+    this.grassQuantityToEnd = 0;
   }
 }
 window.addEventListener("load", () => {
@@ -1110,6 +1170,7 @@ window.addEventListener("load", () => {
     game.detectInteraction();
     game.render(ctx);
     requestAnimationFrame(animate);
+    game.verifyEndGame();
   };
   animate();
 });
@@ -1126,12 +1187,3 @@ imagens.forEach(img => {
 });
 
 
-document.addEventListener('selectstart', (e) => {
-  e.preventDefault();
-});
-document.addEventListener('dragstart', (e) => {
-  e.preventDefault();
-});
-document.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-});

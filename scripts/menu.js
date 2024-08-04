@@ -929,7 +929,6 @@ function generateAnimal(game) {
   };
 
   const AnimalClass = ANIMALSCLASSES[parseInt((Math.random() * 6) + 1)];
-  console.log((Math.random() * 6) + 1);
 
   if (AnimalClass) {
     const animal = new AnimalClass(this, xPosition, yPosition);
