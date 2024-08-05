@@ -24,6 +24,17 @@ function navegarParaUrl(url) {
   window.location.href = url;
 }
 
+var elem = document.documentElement;
+
+function openFullscreen() {
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+}
 
 // ---------------------||------------------------
 
@@ -31,6 +42,19 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.width = 1280 * 1.3;
 canvas.height = 720 * 1.3;
+
+function myFunction(x) {
+  if (x.matches) {
+    openFullscreen();
+  }
+}
+var x = window.matchMedia("(min-width: 720px)")
+document.getElementById("c").addEventListener("click", function () {
+  myFunction(x);
+});
+
+
+
 
 document.addEventListener('selectstart', (e) => {
   e.preventDefault();
@@ -59,7 +83,7 @@ class InputListener {
           this.game.player.frameX = 0;
         }
         this.game.updateKeys(this.keysPressed);
-      }else{
+      } else {
         console.log("Blocked");
       }
     });
@@ -1007,12 +1031,12 @@ class Game {
     this.grassQuantityToEnd = -1;
   }
 
-  finishGame(){
+  finishGame() {
     endResult.style.display = 'flex';
   }
 
-  verifyEndGame(){
-    if(this.grassQuantityToEnd >= this.grass.length){
+  verifyEndGame() {
+    if (this.grassQuantityToEnd >= this.grass.length) {
       this.finishGame();
     }
   }
@@ -1061,7 +1085,7 @@ class Game {
           this.flipsWrapper.textContent = this.flips
             .toString()
             .padStart(2, "0");
-            this.flipsEndGame.textContent = this.flips
+          this.flipsEndGame.textContent = this.flips
             .toString()
             .padStart(2, "0");
 
