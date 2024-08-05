@@ -308,4 +308,113 @@ input::placeholder {
   background: url(/assets/buttons/aboutbtnHover.png) no-repeat center center;
   background-size: contain;
   cursor: none;
+}
+
+@media only screen and (max-width: 720px) {
+  .bode {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 2;
+  }
+  .bode .container {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+  }
+  .bode .image-container {
+    margin-top: 5vh;
+    max-height: 70vw;
+    height: 100%;
+    width: 85vw;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+  }
+  .bode .image-container img {
+    height: 100%;
+    width: 100%;
+    content: url("/assets/EddigLogoMobile.png");
+  }
+  .bode .button-container {
+    height: 100%;
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding-top: 18vh;
+  }
+  .bode .button-container .square {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    width: 12vh;
+    height: 12vh;
+    padding: 10px;
+    margin: 5px;
+  }
+  .bode .button-container .rectangular-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3vh; /* Adjust the gap as needed */
+    position: relative;
+    margin: auto;
+  }
+  .bode .button-container .rectangular-buttons .rectangular {
+    width: 70vw;
+    height: 20vw;
+    z-index: 4;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#play {
+    background: url(/assets/buttons/playbtn.png) no-repeat center center;
+    background-size: contain;
+    border: none;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#play:hover {
+    width: 40vh;
+    height: 25vh;
+    background: url(/assets/buttons/playbtnHover.png) no-repeat center center;
+    background-size: contain;
+    cursor: none;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#ranking {
+    background: url(/assets/buttons/rankingbtn.png) no-repeat center center;
+    background-size: contain;
+    border: none;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#ranking:hover {
+    width: 40vh;
+    height: 25vh;
+    background: url(/assets/buttons/rankingbtnHover.png) no-repeat center center;
+    background-size: contain;
+    cursor: none;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#about {
+    background: url(/assets/buttons/aboutbtn.png) no-repeat center center;
+    background-size: contain;
+    border: none;
+  }
+  .bode .button-container .rectangular-buttons .rectangular#about:hover {
+    width: 40vh;
+    height: 25vh;
+    background: url(/assets/buttons/aboutbtnHover.png) no-repeat center center;
+    background-size: contain;
+    cursor: none;
+  }
 }/*# sourceMappingURL=menu.css.map */
