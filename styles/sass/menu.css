@@ -251,6 +251,7 @@ input::placeholder {
   height: fit-content;
   display: flex;
   justify-content: center;
+  bottom: 10vh;
 }
 .bode .button-container .square {
   position: absolute;
